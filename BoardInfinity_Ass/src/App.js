@@ -1,19 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDownIcon, CalendarIcon, PlusIcon, XIcon } from 'lucide-react';
 import './App.css';  
 import { db } from './firebase'; 
-export default function App() {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: 'Brainstorming',
-      description: 'Brainstorming session to generate diverse ideas for the project.',
-      priority: 'High',
-      date: '2024-09-18',
-      status: 'TODO',
-    },
-   ]);
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
+export default function App() {
+  const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -23,22 +15,49 @@ export default function App() {
     status: 'TODO',
   });
 
+  // Fetch tasks from Firestore on initial render
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const querySnapshot = await getDocs(collection(db, 'tasks'));
+      const fetchedTasks = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTasks(fetchedTasks);
+    };
+    fetchTasks();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewTask((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateTask = () => {
+  const handleCreateTask = async () => {
     if (newTask.title && newTask.date) {
-      setTasks((prev) => [...prev, { ...newTask, id: Date.now() }]);
-      setIsModalOpen(false);
-      setNewTask({
-        title: '',
-        description: '',
-        priority: 'Medium',
-        date: '',
-        status: 'TODO',
-      });
+      const taskToAdd = {
+        ...newTask,
+        createdAt: new Date().toISOString(),
+      };
+      try {
+        // Add the task to Firestore
+        const docRef = await addDoc(collection(db, 'tasks'), taskToAdd);
+
+        // Add the task to local state
+        setTasks((prev) => [...prev, { ...taskToAdd, id: docRef.id }]);
+
+        // Close the modal and reset the form
+        setIsModalOpen(false);
+        setNewTask({
+          title: '',
+          description: '',
+          priority: 'Medium',
+          date: '',
+          status: 'TODO',
+        });
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
     }
   };
 
