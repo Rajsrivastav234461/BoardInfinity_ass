@@ -1,4 +1,3 @@
-/* General container styles */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -59,19 +58,16 @@
 .todo {
   background-color: #6b46c1;
   border-radius: 10px 10px 0px 0px;
-
 }
 
 .in {
   background-color: #f6ad55;
   border-radius: 10px 10px 0px 0px;
-
 }
 
 .completed {
   background-color: #48bb78;
   border-radius: 10px 10px 0px 0px;
-
 }
 
 /* Task list and cards */
@@ -85,6 +81,7 @@
   border-radius: 0.375rem;
   padding: 1rem;
   margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(131, 0, 0, 0.1);
 }
 
 /* Task card header (priority & dropdown) */
@@ -103,17 +100,17 @@
 
 .priority.high {
   background-color: #feb2b2;
-  color: #c53030;
+  color: #936d6d;
 }
 
 .priority.medium {
   background-color: #fed7e2;
-  color: #b83280;
+  color: #f562b7;
 }
 
 .priority.low {
   background-color: #c6f6d5;
-  color: #276749;
+  color: #68b5ab;
 }
 
 /* Dropdown styles */
@@ -185,17 +182,36 @@
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: center;  
+  gap: 0.5rem; 
   margin-bottom: 1rem;
+  position: relative;  
 }
 
 .modal-header h2 {
   font-size: 1.5rem;
   font-weight: bold;
+  margin: 0; 
+  flex: 1;  
+}
+
+.plus-icon-wrapper {
+  width: 24px;  
+  height: 24px; 
+  background-color: #6B46C1;  
+  border-radius: 50%;  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;  
+  flex-shrink: 0;  
 }
 
 .close-btn {
+  position: absolute;
+  top: 50%;
+  right: 0;  
+  transform: translateY(-50%);  
   background: none;
   border: none;
   color: #4a5568;
@@ -215,10 +231,15 @@
 .modal-body input,
 .modal-body textarea,
 .modal-body select {
-  width: 100%;
+  width: calc(100% - 1rem); /* Adjusted width to fit inside modal */
   padding: 0.5rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.375rem;
+}
+
+.modal-body textarea {
+  resize: vertical; /* Allow vertical resizing only */
+  min-height: 100px; /* Set a minimum height */
 }
 
 .form-actions {
@@ -245,4 +266,86 @@
 
 .create-task-btn:hover {
   background-color: #553c9a;
+}
+
+/* Edit and Delete buttons in task card */
+.task-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(131, 0, 0, 0.1);
+  position: relative; /* Make the task card a positioned element */
+  flex-direction: column;
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-date {
+  display: flex;
+  align-items: center;
+  color: #777;
+  font-size: 14px;
+}
+
+.task-date .icon {
+  margin-right: 8px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  right: 16px;
+  bottom: 13px; 
+}
+
+.edit-btn,
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #777;
+  font-size: 16px;
+  padding: 4px;
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  color: #333;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.required {
+  color: red;
+  margin-left: 4px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  display: none;
+}
+
+.dropdown-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-button .icon {
+  font-size: 18px;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
 }
