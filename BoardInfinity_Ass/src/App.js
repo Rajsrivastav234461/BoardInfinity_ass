@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ChevronDownIcon, CalendarIcon, PlusIcon, XIcon } from 'lucide-react';
-import './App.css';  
-import { db } from './firebase'; 
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { ChevronDownIcon, CalendarIcon, PlusCircleIcon, XIcon, EditIcon, TrashIcon } from 'lucide-react';
+import './App.css';
+import { db } from './firebase';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentTaskId, setCurrentTaskId] = useState(null);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -15,7 +17,6 @@ export default function App() {
     status: 'TODO',
   });
 
-  // Fetch tasks from Firestore on initial render
   useEffect(() => {
     const fetchTasks = async () => {
       const querySnapshot = await getDocs(collection(db, 'tasks'));
@@ -40,14 +41,20 @@ export default function App() {
         createdAt: new Date().toISOString(),
       };
       try {
-        // Add the task to Firestore
-        const docRef = await addDoc(collection(db, 'tasks'), taskToAdd);
+        if (isEditing && currentTaskId) {
+          // Update existing task
+          await updateDoc(doc(db, 'tasks', currentTaskId), taskToAdd);
+          setTasks((prev) => prev.map(task => task.id === currentTaskId ? { ...taskToAdd, id: currentTaskId } : task));
+        } else {
+          // Add the task to Firestore
+          const docRef = await addDoc(collection(db, 'tasks'), taskToAdd);
+          setTasks((prev) => [...prev, { ...taskToAdd, id: docRef.id }]);
+        }
 
-        // Add the task to local state
-        setTasks((prev) => [...prev, { ...taskToAdd, id: docRef.id }]);
-
-        // Close the modal and reset the form
+        // Reset modal and form
         setIsModalOpen(false);
+        setIsEditing(false);
+        setCurrentTaskId(null);
         setNewTask({
           title: '',
           description: '',
@@ -56,22 +63,49 @@ export default function App() {
           status: 'TODO',
         });
       } catch (e) {
-        console.error('Error adding document: ', e);
+        console.error('Error saving document: ', e);
       }
     }
   };
 
-  const changeStatus = (taskId, newStatus) => {
-    setTasks(tasks.map(task =>
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await deleteDoc(doc(db, 'tasks', taskId));
+      setTasks((prev) => prev.filter(task => task.id !== taskId));
+    } catch (e) {
+      console.error('Error deleting document: ', e);
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setIsEditing(true);
+    setCurrentTaskId(task.id);
+    setNewTask({
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      date: task.date,
+      status: task.status,
+    });
+    setIsModalOpen(true);
+  };
+
+  const changeStatus = async (taskId, newStatus) => {
+    try {
+      await updateDoc(doc(db, 'tasks', taskId), { status: newStatus });
+      setTasks(tasks.map(task =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      ));
+    } catch (e) {
+      console.error('Error updating status: ', e);
+    }
   };
 
   return (
     <div className="container">
       <div className="header">
         <h1>Desktop & Mobile Application</h1>
-        <button onClick={() => setIsModalOpen(true)} className="create-btn">
+        <button onClick={() => { setIsModalOpen(true); setIsEditing(false); }} className="create-btn">
           Create Task
         </button>
       </div>
@@ -94,7 +128,8 @@ export default function App() {
                         <ChevronDownIcon className="icon" />
                       </button>
                       <div className="dropdown-menu">
-                        {['TODO', 'IN PROGRESS', 'COMPLETED'].map(newStatus => (
+                      <div style={{ backgroundColor: 'lightblue', fontWeight: 'bold' }}>Change Status</div>
+                      {['TODO', 'IN PROGRESS', 'COMPLETED'].map(newStatus => (
                           <button
                             key={newStatus}
                             onClick={() => changeStatus(task.id, newStatus)}
@@ -112,6 +147,14 @@ export default function App() {
                     <CalendarIcon className="icon" />
                     <span>{task.date}</span>
                   </div>
+                  <div className="task-actions">
+                    <button onClick={() => handleEditTask(task)} className="edit-btn">
+                      <EditIcon className="icon" />
+                    </button>
+                    <button onClick={() => handleDeleteTask(task.id)} className="delete-btn">
+                      <TrashIcon className="icon" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -123,17 +166,18 @@ export default function App() {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>
-                <PlusIcon className="icon" />
-                Create New Task
-              </h2>
+              <div className="plus-icon-wrapper">
+                <PlusCircleIcon size={20} color="white" />
+              </div>
+              <h2>{isEditing ? 'Edit Task' : 'Create New Task'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="close-btn">
                 <XIcon className="icon" />
               </button>
             </div>
+            
             <div className="modal-body">
               <div className="form-group">
-                <label>Title *</label>
+                <label>Title <span className="required">*</span></label>
                 <input
                   type="text"
                   name="title"
@@ -153,7 +197,7 @@ export default function App() {
                 />
               </div>
               <div className="form-group">
-                <label>Select Date *</label>
+                <label>Select Date <span className="required">*</span></label>
                 <input
                   type="date"
                   name="date"
@@ -183,7 +227,7 @@ export default function App() {
                   Cancel
                 </button>
                 <button onClick={handleCreateTask} className="create-task-btn">
-                  Create
+                  {isEditing ? 'Update' : 'Create'}
                 </button>
               </div>
             </div>
