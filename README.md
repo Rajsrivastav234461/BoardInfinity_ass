@@ -24,13 +24,13 @@ To get the project up and running locally, follow these steps:
    npm install
    
 4. Created a .env file in the root directory with your Firebase project credentials:
-   REACT_APP_FIREBASE_API_KEY=AIzaSyAI3mUSm9Ie4K8LCtSoZfEhnkfXgvBFy5Y
-   REACT_APP_FIREBASE_AUTH_DOMAIN=kanban-board1-b23a8.firebaseapp.com
-   REACT_APP_FIREBASE_PROJECT_ID=kanban-board1-b23a8
-   REACT_APP_FIREBASE_STORAGE_BUCKET=kanban-board1-b23a8.appspot.com
-   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=771145177818
-   REACT_APP_FIREBASE_APP_ID=1:771145177818:web:44e84a23b2120f0206e3e3
-   REACT_APP_FIREBASE_MEASUREMENT_ID=G-XSVGVD7W0H
+REACT_APP_API_KEY=your_firebase_api_key
+REACT_APP_AUTH_DOMAIN=your_firebase_auth_domain
+REACT_APP_PROJECT_ID=your_firebase_project_id
+REACT_APP_STORAGE_BUCKET=your_firebase_storage_bucket
+REACT_APP_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+REACT_APP_APP_ID=your_firebase_app_id
+
 
  5.Start the development server:
    npm start
